@@ -25,7 +25,7 @@ roleBindingName: boots-rolebinding
 
 deployment:
   strategy:
-    type: Recreate
+    type: RollingUpdate
 
 # The log level for the container.
 logLevel: "info"
