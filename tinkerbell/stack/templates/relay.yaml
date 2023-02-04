@@ -1,0 +1,36 @@
+{{- if and .Values.stack.enabled .Values.stack.relay.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    "helm.sh/hook": "post-install,post-delete,post-rollback,post-upgrade"
+    "helm.sh/hook-weight": "5"
+  name: {{ .Values.stack.name}}-relay
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.stack.name }}-relay
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.stack.name }}-relay
+    spec:
+      containers:
+      - name: {{ .Values.stack.name }}-relay
+        image: {{ .Values.stack.relay.image }}
+        command: ["/bin/sh", "-c"]
+        args:
+        - apk add tini dhcrelay;
+          tini -- dhcrelay -d -id {{ .Values.stack.relay.sourceInterface }} -iu cni0 boots.tink-system.svc.cluster.local;
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+{{- end -}}
