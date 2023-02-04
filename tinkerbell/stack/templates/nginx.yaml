@@ -30,7 +30,7 @@ spec:
           nginx -g 'daemon off;'
         ports:
         {{- if not .Values.boots.hostNetwork }}
-        {{- include "boots.ports" ( merge .Values.boots ( dict "PortKey" "containerPort" ) ) | indent 8 }}
+        {{- include "boots.ports" ( merge ( dict "PortKey" "containerPort" ) .Values.boots  ) | indent 8 }}
         {{- end }}
         - containerPort: {{ .Values.hegel.deployment.port }}
           protocol: TCP
@@ -119,7 +119,7 @@ spec:
     port: {{ .Values.stack.hook.port }}
     protocol: TCP
   {{- if not .Values.boots.hostNetwork }}
-  {{- include "boots.ports" ( merge .Values.boots ( dict "PortKey" "port" ) ) | indent 2 }}
+  {{- include "boots.ports" ( merge ( dict "PortKey" "port" ) .Values.boots  ) | indent 2 }}
   {{- end }}
   selector:
     app: stack

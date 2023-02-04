@@ -62,13 +62,15 @@ spec:
               value: {{ join " " ( append .Values.additionlKernelArgs ( printf "tink_worker_image=%s" ( required "missing tinkWorkerImage" .Values.tinkWorkerImage ) ) ) | quote }}
             - name: BOOTS_LOG_LEVEL
               value: {{ .Values.logLevel | quote }}
+            - name: BOOTS_OSIE_PATH_OVERRIDE
+              value: {{ printf "%v://%v:%v" .Values.osieBase.protocol $osieBaseIp .Values.osieBase.port | quote }}
             {{- range .Values.additionalEnv }}
             - name: {{ .name | quote }}
               value: {{ .value | quote }}
             {{- end }}
           {{- if not .Values.hostNetwork }}
           ports:
-            {{- include "boots.ports" ( merge .Values ( dict "PortKey" "containerPort" ) ) | indent 12 }}
+            {{- include "boots.ports" ( merge ( dict "PortKey" "containerPort" ) .Values  ) | indent 12 }}
           {{- end }}
           name: {{ .Values.name }}
           resources:
