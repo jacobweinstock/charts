@@ -70,7 +70,7 @@ spec:
             {{- end }}
           {{- if not .Values.hostNetwork }}
           ports:
-            {{- include "boots.ports" ( merge ( dict "PortKey" "containerPort" ) .Values  ) | indent 12 }}
+            {{- include "boots.ports" ( merge ( dict "PortKey" "containerPort" ) .Values ) | indent 12 }}
           {{- end }}
           name: {{ .Values.name }}
           resources:

@@ -15,6 +15,7 @@ data:
     user root;
 
     http {
+    {{- if not .Values.stack.hostNetwork }}
       server {
         listen {{ .Values.boots.http.port }};
         location / {
@@ -23,9 +24,10 @@ data:
           resolver $POD_NAMESERVER;
           set $boots_dns {{ .Values.boots.name }}.{{ .Release.Namespace }}.svc.cluster.local; # needed in Kubernetes for dynamic DNS resolution
 
-          proxy_pass http://$boots_dns;
+          proxy_pass http://$boots_dns:{{ .Values.boots.http.port }};
         }
       }
+    {{- end }}
 
       server {
         listen {{ .Values.hegel.deployment.port }};
@@ -58,7 +60,7 @@ data:
         }
       }
     }
-
+  {{- if not .Values.stack.hostNetwork }}
     stream {
       log_format logger-json escape=json '{"source": "nginx", "time": $msec, "address": "$remote_addr", "status": $status, "upstream_addr": "$upstream_addr"}';
 
@@ -89,4 +91,5 @@ data:
           access_log /dev/stdout logger-json;
       }
     }
+  {{- end }}
 {{- end }}

@@ -20,6 +20,10 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
+      {{- if .Values.stack.hostNetwork }}
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- end }}
       containers:
       - name: {{ .Values.stack.name }}
         image: {{ .Values.stack.image }}
@@ -28,9 +32,10 @@ spec:
         - export POD_NAMESERVER=$(awk 'NR==2 {print $2}' /etc/resolv.conf);
           envsubst '$POD_NAMESERVER' < /tmp/nginx.conf.template > /etc/nginx/nginx.conf;
           nginx -g 'daemon off;'
+        {{- if not .Values.stack.hostNetwork }}
         ports:
         {{- if not .Values.boots.hostNetwork }}
-        {{- include "boots.ports" ( merge ( dict "PortKey" "containerPort" ) .Values.boots  ) | indent 8 }}
+        {{- include "boots.ports" ( merge ( dict "PortKey" "containerPort" ) .Values.boots ) | indent 8 }}
         {{- end }}
         - containerPort: {{ .Values.hegel.deployment.port }}
           protocol: TCP
@@ -41,6 +46,7 @@ spec:
         - containerPort: {{ .Values.stack.hook.port }}
           protocol: TCP
           name: hook-http
+        {{- end }}
         resources:
           limits:
             cpu: 500m
@@ -103,7 +109,7 @@ metadata:
   namespace: {{ .Release.Namespace | quote }}
 spec:
   type: {{ .Values.stack.service.type }}
-  {{- if eq .Values.stack.service.type "LoadBalancer" }}
+  {{- if and (eq .Values.stack.service.type "LoadBalancer") (not .Values.stack.hostNetwork) }}
   loadBalancerClass: {{ .Values.stack.lbClass }}
   loadBalancerIP: {{ .Values.stack.loadBalancerIP }}
   {{- end }}
@@ -119,7 +125,7 @@ spec:
     port: {{ .Values.stack.hook.port }}
     protocol: TCP
   {{- if not .Values.boots.hostNetwork }}
-  {{- include "boots.ports" ( merge ( dict "PortKey" "port" ) .Values.boots  ) | indent 2 }}
+  {{- include "boots.ports" ( merge ( dict "PortKey" "port" ) .Values.boots ) | indent 2 }}
   {{- end }}
   selector:
     app: stack
