@@ -3,10 +3,10 @@ stack:
   name: tink-stack
   service:
     enabled: true
-    type: LoadBalancer
+    type: ClusterIP
   selector:
     app: tink-stack
-  loadBalancerIP: 192.168.2.112
+  loadBalancerIP: 192.168.2.88
   lbClass: kube-vip.io/kube-vip-class
   image: nginx:1.23.1
   hook:
@@ -29,7 +29,7 @@ stack:
     roleBindingName: kube-vip-rolebinding
     # Customize the interface KubeVIP advertises on. When unset, KubeVIP will autodetect the
     # interface.
-    #interface: enp0s8
+    interface: eno1
   relay: # relay allows us to listen and respond to layer broadcast DHCP requests
     name: dhcp-relay
     enabled: true
@@ -48,16 +48,18 @@ stack:
 boots:
   image: quay.io/tinkerbell/boots:v0.8.0
   tinkWorkerImage: quay.io/tinkerbell/tink-worker:v0.8.0
+  service:
+    type: ClusterIP
   trustedProxies: []
   # This will be the IP address that machines use to reach Boots (via unicast for DHCP) for netbooting. It should be a unused IP address in your network.
-  remoteIp: 192.168.2.113
+  remoteIp: 192.168.2.88
   # Once the Kubernetes Gateway API is more stable, we will use that and be able to require only a single IP for all Tinkerbell services.
   tinkServer:
     # This should be the same as `stack.loadBalancerIP`.
-    ip: 192.168.2.112
+    ip: 192.168.2.88
   osieBase:
     # This should be the same as `stack.loadBalancerIP`.
-    ip: 192.168.2.112
+    ip: 192.168.2.88
 
 hegel:
   image: quay.io/tinkerbell/hegel:v0.10.1

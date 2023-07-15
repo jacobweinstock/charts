@@ -1,0 +1,152 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: GatewayClass
+metadata:
+  name: eg
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: Gateway
+metadata:
+  name: tink-stack
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  gatewayClassName: eg
+  listeners:
+    - name: tink-server
+      protocol: TCP
+      port: 42113
+      allowedRoutes:
+        kinds:
+        - kind: GRPCRoute
+    - name: hegel
+      protocol: HTTP
+      port: 50061
+    - name: artifacts
+      protocol: TCP
+      port: 8080
+      allowedRoutes:
+        kinds:
+        - kind: TCPRoute
+    - name: ipxe-binaries
+      protocol: HTTP
+      port: 80
+    - name: boots-tftp
+      protocol: UDP
+      port: 69
+      allowedRoutes:
+        kinds:
+        - kind: "UDPRoute"
+    - name: boots-dhcp
+      protocol: UDP
+      port: 67
+      allowedRoutes:
+        kinds:
+        - kind: "UDPRoute"
+    - name: boots-syslog
+      protocol: UDP
+      port: 514
+      allowedRoutes:
+        kinds:
+        - kind: "UDPRoute"
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: GRPCRoute
+metadata:
+  name: tink-server
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    example: grpc-routing
+spec:
+  parentRefs:
+    - name: tink-stack
+  rules:
+    - backendRefs:
+        - kind: Service
+          name: tink-server
+          port: 42113
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: HTTPRoute
+metadata:
+  name: hegel
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  parentRefs:
+  - name: tink-stack
+    sectionName: hegel
+  rules:
+  - backendRefs:
+    - name: hegel
+      port: 50061
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TCPRoute
+metadata:
+  name: artifacts
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  parentRefs:
+  - name: tink-stack
+    sectionName: artifacts
+  rules:
+  - backendRefs:
+    - name: tink-stack
+      port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: HTTPRoute
+metadata:
+  name: ipxe-binaries
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  parentRefs:
+  - name: tink-stack
+    sectionName: ipxe-binaries
+  rules:
+  - backendRefs:
+    - name: boots
+      port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: UDPRoute
+metadata:
+  name: boots-tftp
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  parentRefs:
+    - name: tink-stack
+      sectionName: boots-tftp
+  rules:
+    - backendRefs:
+        - name: boots
+          port: 69
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: UDPRoute
+metadata:
+  name: boots-dhcp
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  parentRefs:
+    - name: tink-stack
+      sectionName: boots-dhcp
+  rules:
+    - backendRefs:
+        - name: boots
+          port: 67
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: UDPRoute
+metadata:
+  name: boots-syslog
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  parentRefs:
+    - name: tink-stack
+      sectionName: boots-syslog
+  rules:
+    - backendRefs:
+        - name: boots
+          port: 514

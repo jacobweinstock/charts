@@ -11,5 +11,8 @@ dependencies:
 - name: hegel
   repository: file://../hegel
   version: 0.3.1
-digest: sha256:aa1b615315c4c819893c0657517a24d430068277bca3f3d0ce06f8c198199195
-generated: "2023-03-10T16:12:14.071602-06:00"
+- name: gateway-helm
+  repository: oci://docker.io/envoyproxy
+  version: v0.4.0
+digest: sha256:78d173d5971487d5074c5d162fed3dd04690dae63b19ca58367eb5e95c44f884
+generated: "2023-07-14T19:33:23.618770224-06:00"

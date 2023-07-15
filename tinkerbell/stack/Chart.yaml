@@ -36,3 +36,7 @@ dependencies:
   - name: hegel
     version: "0.3.1"
     repository: "file://../hegel"
+  - name: gateway-helm
+    version: "v0.4.0"
+    repository: "oci://docker.io/envoyproxy"
+    
